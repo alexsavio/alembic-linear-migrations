@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: true
+      - run: uv run --frozen ruff format --check .
+      - run: uv run --frozen ruff check .
+      - run: uv run --frozen mypy
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        alembic: [""]
+        include:
+          # The floor and the ceiling of the supported alembic range. The hook
+          # entry point is resolved by alembic itself, so its version matters as
+          # much as Python's.
+          - { os: ubuntu-latest, python: "3.10", alembic: "1.9.0" }
+          - { os: ubuntu-latest, python: "3.12", alembic: "1.13.3" }
+          # git's conflict-marker handling is what rebase reads, so cover a
+          # second platform.
+          - { os: macos-latest, python: "3.12", alembic: "" }
+          - { os: windows-latest, python: "3.12", alembic: "" }
+    name: py${{ matrix.python }}${{ matrix.alembic && format(' / alembic {0}', matrix.alembic) || '' }} / ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+      - run: uv sync --all-extras
+      - name: Pin alembic
+        if: matrix.alembic != ''
+        run: uv pip install "alembic==${{ matrix.alembic }}"
+      - run: uv run --no-sync python -c "import alembic; print('alembic', alembic.__version__)"
+      - name: Configure git identity for the merge/rebase tests
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@example.com"
+          git config --global init.defaultBranch main
+      - run: uv run --no-sync pytest -m "not slow" --cov --cov-report=term-missing
+
+  # The pre-commit hook only proves itself when pre-commit builds its own
+  # environment from this repository, which needs network and a real commit.
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: true
+      - run: uv sync --all-extras
+      - run: uv pip install pre-commit
+      - name: Configure git identity
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@example.com"
+      - run: uv run --no-sync pytest -m slow -v
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+      - run: uv build
+      - name: Check metadata renders on PyPI
+        run: uvx twine check --strict dist/*
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: dist
+          path: dist/

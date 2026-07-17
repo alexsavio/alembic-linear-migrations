@@ -1,0 +1,19 @@
+- id: alembic-linear
+  name: alembic-linear
+  description: >-
+    Record the Alembic migration graph head in head.txt, and fail if it was out
+    of date, so the rewrite is staged rather than silently committed.
+  entry: alembic-linear update --exit-on-change
+  language: python
+  always_run: true
+  pass_filenames: false
+
+- id: alembic-linear-check
+  name: alembic-linear (check only)
+  description: >-
+    Fail if head.txt is stale or the migration graph has more than one head.
+    Read-only; use this in CI, where rewriting a file would be pointless.
+  entry: alembic-linear check
+  language: python
+  always_run: true
+  pass_filenames: false
