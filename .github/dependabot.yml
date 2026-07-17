@@ -1,0 +1,27 @@
+version: 2
+
+updates:
+  # Keeps the SHA pins in .github/workflows current. The pins are what zizmor's
+  # unpinned-uses audit enforces; this is what stops them going stale. Dependabot
+  # rewrites the trailing `# v5` comment along with the SHA.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+
+  # Dev tooling only: alembic is the single runtime dependency and is
+  # deliberately floored at >=1.9, not pinned, so this tracks uv.lock.
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore"

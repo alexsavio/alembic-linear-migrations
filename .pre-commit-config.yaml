@@ -1,5 +1,9 @@
-# Hooks for developing this package. The hooks it *provides* are in
-# .pre-commit-hooks.yaml; there are no migrations here to point them at.
+# Hooks for developing this package. The hooks it *provides* live in
+# .pre-commit-hooks.yaml; there are no migrations here to point those at.
+#
+# Every Python tool runs through `uv run --frozen`, so its version comes from
+# uv.lock -- the same one CI and a local shell resolve. Mirror repos would pin
+# their own copies here and drift from the lock without anything noticing.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -11,16 +15,39 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.4
+  - repo: local
     hooks:
       - id: ruff-check
-        args: [--fix]
-      - id: ruff-format
+        name: ruff check
+        entry: uv run --frozen ruff check --fix --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
-    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --frozen ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
       - id: mypy
+        name: mypy
+        entry: uv run --frozen mypy
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false # mypy reads `files` from pyproject.toml
+        require_serial: true
+
+      - id: zizmor
+        name: zizmor
+        entry: uv run --frozen zizmor --persona=regular
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+
+      - id: uv-lock
+        name: uv lock is current
+        entry: uv lock --check
+        language: system
+        files: ^(pyproject\.toml|uv\.lock)$
         pass_filenames: false
-        additional_dependencies: [alembic>=1.9, pytest]

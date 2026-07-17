@@ -20,6 +20,11 @@ jobs:
         with:
           persist-credentials: false
       - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          # A restored cache can feed into the artifact this job publishes, and
+          # a release build is the worst place to accept that risk. Nothing here
+          # is hot enough to be worth caching anyway.
+          enable-cache: false
 
       - name: Refuse to publish a tag that disagrees with the package version
         if: startsWith(github.ref, 'refs/tags/v')
@@ -32,6 +37,7 @@ jobs:
           fi
           echo "tag v$tag matches project version $version"
 
+      - run: uv lock --check
       - run: uv build
       - run: uvx twine check --strict dist/*
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
