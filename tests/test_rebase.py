@@ -12,7 +12,7 @@ import pytest
 
 from alembic_linear_migrations import AlembicLinearError, head
 from alembic_linear_migrations.config import discover
-from alembic_linear_migrations.rebase import rebase
+from alembic_linear_migrations.rebase import _rewrite_down_revision, rebase
 
 from .conftest import AlembicProject
 
@@ -204,6 +204,48 @@ def test_two_heads_without_conflict_markers_asks_for_onto(make_project):
 
     with pytest.raises(AlembicLinearError, match="no conflict markers"):
         rebase(discover(str(project.ini)))
+
+
+@pytest.mark.parametrize(
+    ("original", "expected"),
+    [
+        ("down_revision = 'aaaa'", "down_revision = 'mmmm'"),
+        ('down_revision = "aaaa"', "down_revision = 'mmmm'"),
+        (
+            "down_revision: Union[str, None] = 'aaaa'",
+            "down_revision: Union[str, None] = 'mmmm'",
+        ),
+        ("down_revision: str | None = 'aaaa'", "down_revision: str | None = 'mmmm'"),
+        ("down_revision  =  'aaaa'", "down_revision  =  'mmmm'"),
+        ("down_revision = 'aaaa'  # keep", "down_revision = 'mmmm'  # keep"),
+        ("down_revision = None", "down_revision = 'mmmm'"),
+    ],
+    ids=["bare", "double-quoted", "annotated", "pep604", "spaced", "comment", "none"],
+)
+def test_the_rewrite_handles_the_shapes_alembic_writes(tmp_path, original, expected):
+    path = tmp_path / "rev.py"
+    path.write_text(f"revision = 'ffff'\n{original}\ndepends_on = None\n")
+
+    _rewrite_down_revision(path, "mmmm")
+
+    assert path.read_text().splitlines()[1] == expected
+
+
+def test_the_rewrite_refuses_a_file_with_no_down_revision(tmp_path):
+    path = tmp_path / "rev.py"
+    path.write_text("revision = 'ffff'\n")
+
+    with pytest.raises(AlembicLinearError, match="Could not find a module-level"):
+        _rewrite_down_revision(path, "mmmm")
+
+
+def test_the_rewrite_refuses_an_ambiguous_file(tmp_path):
+    """Two assignments mean the intent is unclear; guessing would corrupt the graph."""
+    path = tmp_path / "rev.py"
+    path.write_text("down_revision = 'aaaa'\ndown_revision = 'bbbb'\n")
+
+    with pytest.raises(AlembicLinearError, match="expected exactly one"):
+        _rewrite_down_revision(path, "mmmm")
 
 
 @pytest.mark.parametrize("parents", ["['aaaa', 'bbbb']", "('aaaa', 'bbbb')"])
