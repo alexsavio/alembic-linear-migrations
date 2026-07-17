@@ -52,13 +52,16 @@ def alembic_app(tmp_path: Path) -> Path:
 
 
 def test_post_write_hook_fires_on_alembic_revision(alembic_app):
-    """The console_scripts hook type, exercised by alembic itself."""
+    """The console_scripts hook type, exercised by alembic itself.
+
+    head.txt exists only if alembic resolved the entry point and ran it, which
+    is the whole claim. Alembic's own progress wording is not part of it and
+    differs across versions, so it is not asserted on.
+    """
     created = _run(
         sys.executable, "-m", "alembic", "revision", "-m", "first", cwd=alembic_app
     )
-
     assert created.returncode == 0, created.stderr
-    assert "Running post write hook 'alembic_linear'" in created.stdout
 
     head_file = alembic_app / "migrations" / "head.txt"
     assert head_file.exists(), created.stdout + created.stderr
