@@ -1,10 +1,13 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "alembic-linear-migrations"
-version = "0.1.0"
+# CalVer (YYYY.MM.MICRO), derived from the git tag by hatch-vcs. The tag is the
+# only source of truth; see [tool.hatch.version] below. Release by tagging
+# v2026.7.0 (first release that month), v2026.7.1 (second), and so on.
+dynamic = ["version"]
 description = "Turn a late Alembic multiple-heads error into an early git conflict."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -48,6 +51,16 @@ dev = [
     "pre-commit>=3.5",
     "zizmor>=1.27",
 ]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+# On an exact tag the version is the tag verbatim (v2026.7.0 -> 2026.7.0). Between
+# tags, emit an honest post-release dev version (2026.7.0.post1.devN+g<sha>) rather
+# than guessing a next tag, which for CalVer is unknowable. A dev build carries a
+# local (+g...) segment, so PyPI would reject it -- only an exact tag can publish.
+version_scheme = "no-guess-dev"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/alembic_linear_migrations"]

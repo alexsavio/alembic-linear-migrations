@@ -23,7 +23,6 @@ wheels = [
 
 [[package]]
 name = "alembic-linear-migrations"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },

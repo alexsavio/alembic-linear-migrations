@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+          # hatch-vcs derives the version from the newest reachable tag, which a
+          # shallow clone would not fetch.
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           # A restored cache can feed into the artifact this job publishes, and
@@ -26,19 +29,26 @@ jobs:
           # is hot enough to be worth caching anyway.
           enable-cache: false
 
-      - name: Refuse to publish a tag that disagrees with the package version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          tag="${GITHUB_REF#refs/tags/v}"
-          version="$(uv version --short)"
-          if [ "$tag" != "$version" ]; then
-            echo "::error::tag v$tag does not match project version $version"
-            exit 1
-          fi
-          echo "tag v$tag matches project version $version"
-
       - run: uv lock --check
       - run: uv build
+
+      # hatch-vcs makes the tag the version, so a tag/version mismatch is not
+      # possible. What can still go wrong is building a non-exact version -- a
+      # dirty tree or a checkout that missed the tag yields a .dev / +local
+      # build. Refuse to publish anything but a clean release.
+      - name: Refuse to publish a dev or local build
+        run: |
+          for artifact in dist/*.whl; do
+            version="$(basename "$artifact" | cut -d- -f2)"
+            case "$version" in
+              *.dev* | *+*)
+                echo "::error::built version $version is not a clean release; check the tag and fetch-depth"
+                exit 1
+                ;;
+            esac
+            echo "clean release version: $version"
+          done
+
       - run: uvx twine check --strict dist/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

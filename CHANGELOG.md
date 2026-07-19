@@ -1,12 +1,12 @@
 # Changelog
 
 All notable changes to this project are documented here. The format follows
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions are
+[CalVer](https://calver.org/) `YYYY.MM.MICRO`: the year and month of the release,
+then a counter that starts at 0 each month. The git tag is the version, so cutting a
+release means tagging `vYYYY.MM.MICRO`.
 
 ## [Unreleased]
-
-## [0.1.0] - 2026-07-17
 
 First release.
 
@@ -25,5 +25,4 @@ First release.
   type), verified against alembic 1.9 and 1.18.
 - pre-commit hooks `alembic-linear` and `alembic-linear-check`.
 
-[Unreleased]: https://github.com/alexsavio/alembic-linear-migrations/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/alexsavio/alembic-linear-migrations/releases/tag/v0.1.0
+[Unreleased]: https://github.com/alexsavio/alembic-linear-migrations/commits/main

@@ -123,7 +123,9 @@ hand-rolled versions get wrong, and it is exactly what a library should own.
 
 ## Package
 
-- `pyproject.toml`, hatchling, MIT, Python >=3.10, dep `alembic>=1.9`.
+- `pyproject.toml`, hatchling + hatch-vcs, MIT, Python >=3.10, dep `alembic>=1.9`.
+- Version: CalVer `YYYY.MM.MICRO`, derived from the git tag. The tag is the only
+  source of truth; release by tagging `vYYYY.MM.MICRO`.
 - Entry points: `alembic-linear`, plus `alembic-linear-update` for the hook.
 - `.pre-commit-hooks.yaml` for pre-commit consumers.
 - pytest, ruff, mypy. CI matrix over Python + Alembic versions.
@@ -141,9 +143,9 @@ hand-rolled versions get wrong, and it is exactly what a library should own.
 - [ ] Tests: fixture alembic projects (linear, 2-head, stale head, hand-written)
 - [ ] README: problem, install, wiring, rebase workflow, limitations
 - [ ] CI + PyPI trusted publishing
-- [ ] v0.1.0
+- [ ] first release (CalVer `YYYY.MM.MICRO`)
 
 ## Then: adopt in analysis-virtual-machines
 
-Separate PR, after v0.1.0 is real. Wires `[post_write_hooks]` + pre-commit +
+Separate PR, after the first release is real. Wires `[post_write_hooks]` + pre-commit +
 `head.txt` = `c4e6a8b0d2f1`, and #2706 gets the first real conflict guard.

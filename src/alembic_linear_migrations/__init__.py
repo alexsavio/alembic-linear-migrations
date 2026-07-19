@@ -7,9 +7,14 @@ Alembic ``Multiple head revisions are present`` error days later.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 __all__ = ["AlembicLinearError", "__version__"]
 
-__version__ = "0.1.0"
+try:
+    __version__ = version("alembic-linear-migrations")
+except PackageNotFoundError:  # pragma: no cover - only from an uninstalled source tree
+    __version__ = "0.0.0"
 
 
 class AlembicLinearError(Exception):
