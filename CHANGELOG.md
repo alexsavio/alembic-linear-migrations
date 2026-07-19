@@ -8,6 +8,8 @@ release means tagging `vYYYY.MM.MICRO`.
 
 ## [Unreleased]
 
+## [2026.7.0] - 2026-07-19
+
 First release.
 
 ### Added
@@ -25,4 +27,5 @@ First release.
   type), verified against alembic 1.9 and 1.18.
 - pre-commit hooks `alembic-linear` and `alembic-linear-check`.
 
-[Unreleased]: https://github.com/alexsavio/alembic-linear-migrations/commits/main
+[Unreleased]: https://github.com/alexsavio/alembic-linear-migrations/compare/v2026.7.0...HEAD
+[2026.7.0]: https://github.com/alexsavio/alembic-linear-migrations/releases/tag/v2026.7.0
