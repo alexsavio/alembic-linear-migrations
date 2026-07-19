@@ -89,7 +89,7 @@ In `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/alexsavio/alembic-linear-migrations
-    rev: v0.1.0
+    rev: v2026.7.0 # or the latest tag
     hooks:
       - id: alembic-linear
 ```

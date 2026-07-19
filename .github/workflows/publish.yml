@@ -1,9 +1,10 @@
 name: Publish
 
 # Publishes to PyPI via Trusted Publishing (OIDC): no API token is stored in
-# this repository. PyPI must have a pending publisher configured for
-# alembic-linear-migrations -> alexsavio/alembic-linear-migrations, workflow
-# `publish.yml`, environment `pypi`.
+# this repository. PyPI must have a Trusted Publisher configured for this repo --
+# owner alexsavio, repo alembic-linear-migrations, workflow `publish.yml`,
+# environment `pypi` -- either as a pending publisher (before the project exists)
+# or under the existing project's Publishing settings.
 on:
   push:
     tags: ["v*"]
