@@ -180,9 +180,13 @@ def _sides(project: Project, onto: str | None, heads: Sequence[str]) -> tuple[st
         return ours, theirs
 
     state = detect(project.root)
-    conflict = head_file.parse_conflict(
-        project.head_file.read_text(encoding="utf-8"), project.head_file
-    )
+    # A missing head.txt carries no sides to read, exactly like a resolved one;
+    # both land on the --onto prompt below rather than a FileNotFoundError.
+    try:
+        head_text = project.head_file.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        head_text = ""
+    conflict = head_file.parse_conflict(head_text, project.head_file)
 
     if conflict is None:
         raise AlembicLinearError(
