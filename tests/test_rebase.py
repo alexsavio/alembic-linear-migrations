@@ -206,6 +206,18 @@ def test_two_heads_without_conflict_markers_asks_for_onto(make_project):
         rebase(discover(str(project.ini)))
 
 
+def test_two_heads_without_a_head_file_asks_for_onto(make_project):
+    """A missing head.txt is a clean --onto prompt, not a FileNotFoundError."""
+    project = make_project()
+    project.add_revision("aaaa", None)
+    project.add_revision("ffff", "aaaa")
+    project.add_revision("mmmm", "aaaa")
+    assert not project.head_file.exists()
+
+    with pytest.raises(AlembicLinearError, match="--onto"):
+        rebase(discover(str(project.ini)))
+
+
 @pytest.mark.parametrize(
     ("original", "expected"),
     [

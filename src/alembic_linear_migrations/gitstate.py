@@ -48,8 +48,10 @@ class GitState(enum.Enum):
 
 def _git_dir(cwd: Path) -> Path | None:
     try:
+        # `git` is resolved from PATH by design: the hook runs wherever the
+        # developer's git is, so a hard-coded path would be wrong more often.
         completed = subprocess.run(
-            ["git", "rev-parse", "--absolute-git-dir"],
+            ["git", "rev-parse", "--absolute-git-dir"],  # noqa: S607
             cwd=str(cwd),
             capture_output=True,
             text=True,

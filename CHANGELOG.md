@@ -8,6 +8,12 @@ release means tagging `vYYYY.MM.MICRO`.
 
 ## [Unreleased]
 
+### Fixed
+
+- `rebase` now prints a clean error pointing at `--onto` when the graph has two
+  heads but `head.txt` is absent, instead of raising a `FileNotFoundError`
+  traceback.
+
 ## [2026.7.0] - 2026-07-19
 
 First release.

@@ -94,10 +94,13 @@ select = [
     "RUF",  # ruff-specific
     "SIM",  # flake8-simplify
     "PTH",  # flake8-use-pathlib
+    "S",    # flake8-bandit
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+# Test infrastructure runs git and other subprocesses with test-controlled
+# arguments, and asserts freely; the bandit warnings do not apply there.
+"tests/*" = ["S101", "S603", "S607"]
 
 [tool.mypy]
 python_version = "3.10"
